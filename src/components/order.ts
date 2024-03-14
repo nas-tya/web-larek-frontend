@@ -5,7 +5,7 @@ import {ensureElement} from "../utils/utils";
 
 interface IOrderContacts {
   phone: string;
-  emeail: string;
+  email: string;
 }
 
 export class OrderContacts extends Form<IOrderContacts> {

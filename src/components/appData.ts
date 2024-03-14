@@ -18,6 +18,7 @@ export class Product extends Model<IProductItem> {
 export class AppState extends Model<IAppState> {
   catalog: IProductItem[];
   basket: IProductItem[];    
+  preview: string | null;
   order: null | IOrder = {
     payment: 'card',
     email: '',
@@ -60,8 +61,8 @@ export class AppState extends Model<IAppState> {
   }
 
   setCatalog(items: IProductItem[]): void {
-      this.catalog = items.map(item => new Product(item, this.events));
-      this.emitChanges('items:changed', { catalog: this.catalog });
+    this.catalog = items.map(item => new Product(item, this.events));
+    this.events.emit('items:changed');
   }
 
   getTheBasket(): IProductItem[] {
