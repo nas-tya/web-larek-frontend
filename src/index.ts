@@ -55,7 +55,14 @@ events.on<CatalogChangeEvent>('items:changed', () => {
       });
   });
 
-  page.counter = appData.getTheBasket().length;
+  const basket = appData.getTheBasket();
+
+  if (Array.isArray(basket)) {
+    page.counter = basket.length;
+  } else {
+    page.counter = 0;
+  }
+
 });
 
 // Блокируем прокрутку страницы если открыта модалка
