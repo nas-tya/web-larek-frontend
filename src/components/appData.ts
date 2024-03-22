@@ -13,11 +13,12 @@ export class Product extends Model<IProductItem> {
   title: string;
   category: string;
   price: number | null;
+  selected: boolean;
 }
 
 export class AppState extends Model<IAppState> {
   catalog: IProductItem[];
-  basket: IProductItem[];    
+  basket: string[];    
   preview: string | null;
   order: null | IOrder = {
     payment: 'card',
@@ -29,13 +30,8 @@ export class AppState extends Model<IAppState> {
 };
   formErrors: FormErrors = {};
 
-  addToBasket(item: IProductItem): void {
+  addToBasket(item: string): void {
     this.basket.push(item);
-    this.emitChanges('basket:changed');
-  }
-
-  removeFromBasket(id: string): void {
-    this.basket = this.basket.filter((item) => item.id !== id);
     this.emitChanges('basket:changed');
   }
 
@@ -57,7 +53,7 @@ export class AppState extends Model<IAppState> {
   }
 
   getTotal(): number | null {
-      return this.basket.reduce((sum, product)=> sum + product.price, 0)
+    return this.order.items.reduce((a, c) => a + this.catalog.find(it => it.id === c).price, 0)
   }
 
   setCatalog(items: IProductItem[]): void {
@@ -65,11 +61,16 @@ export class AppState extends Model<IAppState> {
     this.events.emit('items:changed');
   }
 
-  getTheBasket(): IProductItem[] {
+  setPreview(item: IProductItem) {
+    this.preview = item.id;
+    this.emitChanges('preview:changed', item);
+  }
+
+  getTheBasket(): string[] {
     return this.basket;
   }
 
-  checkIfInTheBasket(item: IProductItem): boolean {
+  checkIfInTheBasket(item: string): boolean {
       return this.basket.includes(item);
   }
 
@@ -89,10 +90,10 @@ export class AppState extends Model<IAppState> {
     this.order.email = email;
   }
 
-  setOrder(): void {
-    this.order.total = this.getTotal();
-    this.order.items = this.getTheBasket().map((item) => item.id);
-  }
+//   setOrder(): void {
+//   this.order.total = this.getTotal();
+//   this.order.items = this.getTheBasket().map((item) => item.id);
+// }
 
   validateOrderContacts(): void {
       const errors: typeof this.formErrors = {};

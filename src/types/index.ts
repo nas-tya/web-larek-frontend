@@ -9,7 +9,8 @@ export interface IProductItem {
   image: string,
   title: string,
   category: string,
-  price: number | null
+  price: number | null,
+  selected: boolean;
 } 
 
 export type PaymentMethod = 'card' | 'cash';

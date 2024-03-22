@@ -7,6 +7,8 @@ interface ICardActions {
 }
 
 export type ICard<T> = IProductItem & { 
+  title?: string;
+  image?: string;
   button?: string;
   id?: string;
   description?: string;
@@ -39,11 +41,21 @@ export class Card<T> extends Component<ICard<T>> {
         this._category = ensureElement<HTMLElement>(`.${blockName}__category`, container);
 
         // если есть кнопка - ловим клик по кнопке, если кнопки нет - ловим по карточке 
-            if (this._button) {
-                this._button.addEventListener('click', actions.onClick);
-            } else {
-                container.addEventListener('click', actions.onClick);
-            }
+        if (actions?.onClick) {
+          if (this._button) {
+              this._button.addEventListener('click', actions.onClick);
+          } else {
+              container.addEventListener('click', actions.onClick);
+          }
+      }
+    }
+    
+    set id(value: string) {
+      this.container.dataset.id = value;
+    }
+
+    get id(): string {
+      return this.container.dataset.id || '';
     }
 
     set title(value: string) {
@@ -73,7 +85,7 @@ export class Card<T> extends Component<ICard<T>> {
     }
 
     get price(): number | null {
-      return Number(this._price.textContent);
+        return Number(this._price.textContent);
     }
 
     set category(value: string) {
@@ -91,51 +103,25 @@ export interface ICardBusket {
   price: number | null;
 }
 
-export class CardBasket extends Component<ICardBusket> {
-    protected _title: HTMLElement;
-    protected _price?: HTMLElement;
-    protected _index?: HTMLElement;
-    protected _button?: HTMLButtonElement;
+export class CardInBasket extends Card<ICardBusket> {
+  protected _index?: HTMLElement;
 
-    constructor(index: number, container: HTMLElement, actions?: ICardActions) {
-        super(container);
+	constructor(container: HTMLElement, actions?: ICardActions) {
+		super('card', container, actions);
+		this._index = ensureElement<HTMLElement>(`.basket__item-index`, container);
+	}
 
-        this._title = ensureElement<HTMLElement>(`.card__title`, container);
-        this._button = container.querySelector(`.basket__item-delete`);
-        this._price = ensureElement<HTMLElement>(`.card__price`, container);
-        this._index = ensureElement<HTMLElement>(`.basket__item-index`, container);
+	set index(value: number) {
+		this._index.textContent = value.toString();
+	}
+}
 
-        this._button.addEventListener('click', actions.onClick);
-        this.setText(this._index!, `${index + 1}`);
-    }
+interface IPreviewCard {
+	label: string;
+};
 
-    set price(value: number | null) {
-      if (typeof(value) === null) {
-        this.setText(this._price, 'Бесценно');
-        if (this._button) { 
-           this._button.setAttribute('disabled', '')
-         } 
-      }
-      this.setText(this._price, value + ' синапсов');
-    }
-
-    get price(): number | null {
-      return Number(this._price.textContent);
-    }
-
-    set title(value: string) {
-      this.setText(this._title, value);
-    }
-
-    get title(): string {
-      return this._title.textContent || '';
-    }
-
-    set index(value: number) {
-      this.setText(this._index, value);
-    }
-
-    get index(): number {
-      return Number(this._index.textContent);
-    }
+export class PreviewCard extends Card<IPreviewCard> {
+	constructor(container: HTMLElement, actions?: ICardActions) {
+		super('card', container, actions);
+	}
 }
