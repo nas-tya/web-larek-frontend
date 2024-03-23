@@ -18,7 +18,7 @@ export class Product extends Model<IProductItem> {
 
 export class AppState extends Model<IAppState> {
   catalog: IProductItem[];
-  basket: string[];    
+  basket: HTMLElement[];    
   preview: string | null;
   order: null | IOrder = {
     payment: 'card',
@@ -30,10 +30,10 @@ export class AppState extends Model<IAppState> {
 };
   formErrors: FormErrors = {};
 
-  addToBasket(item: string): void {
+  addToBasket(item: HTMLElement): void {
     this.basket.push(item);
     this.emitChanges('basket:changed');
-  }
+}
 
   clearBasket(): void {
     this.basket = [];
@@ -53,8 +53,11 @@ export class AppState extends Model<IAppState> {
   }
 
   getTotal(): number | null {
-    return this.order.items.reduce((a, c) => a + this.catalog.find(it => it.id === c).price, 0)
-  }
+    return this.order.items.reduce((total, itemId) => {
+        const product = this.catalog.find(item => item.id === itemId);
+        return total + (product ? product.price : 0);
+    }, 0);
+}
 
   setCatalog(items: IProductItem[]): void {
     this.catalog = items.map(item => new Product(item, this.events));
@@ -66,13 +69,13 @@ export class AppState extends Model<IAppState> {
     this.emitChanges('preview:changed', item);
   }
 
-  getTheBasket(): string[] {
-    return this.basket;
-  }
+  getTheBasket(): HTMLElement[] {
+    return this.basket || [];
+}
 
-  checkIfInTheBasket(item: string): boolean {
-      return this.basket.includes(item);
-  }
+checkIfInTheBasket(item: HTMLElement): boolean {
+  return this.basket.includes(item);
+}
 
   setPayment(payment: PaymentMethod): void {
     this.order.payment = payment;
@@ -89,11 +92,6 @@ export class AppState extends Model<IAppState> {
   setEmail(email: string): void {
     this.order.email = email;
   }
-
-//   setOrder(): void {
-//   this.order.total = this.getTotal();
-//   this.order.items = this.getTheBasket().map((item) => item.id);
-// }
 
   validateOrderContacts(): void {
       const errors: typeof this.formErrors = {};

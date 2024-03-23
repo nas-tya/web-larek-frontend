@@ -111,15 +111,23 @@ events.on('card:select', (item: Product) => {
 });
 
 // Открыть корзину
-events.on('basket:changed', () => {
-	page.counter = appData.getTotal();
-	modal.render({
-		content: basket.render({
-			items: [],
-			total: appData.getTotal(),
-		}),
-	});
+events.on('basket:open', () => {
+    const basketItems = appData.getTheBasket(); // Получаем элементы корзины
+    const total = appData.getTotal(); // Получаем общую стоимость корзины
+    modal.render({
+        content: basket.render({
+            items: basketItems,
+            total: total,
+        }),
+    });
 });
+
+const openBasketButton = document.querySelector('.header__basket');
+if (openBasketButton) {
+    openBasketButton.addEventListener('click', () => {
+        events.emit('basket:open');
+    });
+}
 
 // Изменен открытый выбранный лот
 events.on('preview:changed', (item: Product) => {
