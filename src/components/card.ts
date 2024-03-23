@@ -75,14 +75,18 @@ export class Card<T> extends Component<ICard<T>> {
     }
 
     set price(value: number | null) {
-      if (typeof(value) === null) {
-        this.setText(this._price, 'Бесценно');
-        if (this._button) { 
-           this._button.setAttribute('disabled', '')
-         } 
+      if (value === null) {
+          this.setText(this._price, 'Бесценно');
+          if (this._button) { 
+              this._button.setAttribute('disabled', '');
+          } 
+      } else {
+          this.setText(this._price, value + ' синапсов');
+          if (this._button) { 
+              this._button.removeAttribute('disabled');
+          }
       }
-      this.setText(this._price, value + ' синапсов');
-    }
+  }
 
     get price(): number | null {
         return Number(this._price.textContent);

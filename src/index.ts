@@ -66,6 +66,8 @@ events.on<CatalogChangeEvent>('items:changed', () => {
 
 });
 
+
+
 // Отправлена форма заказа
 events.on('order:submit', () => {
   api.orderProducts(appData.order)

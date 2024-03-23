@@ -5,7 +5,13 @@ import {EventEmitter} from "../base/events";
 interface IBasketView {
     items: HTMLElement[];
     total: number;
-    selected: string[];
+}
+
+export interface IBasketItem {
+    id: string;
+    title: string;
+    price: number;
+    quantity: number;
 }
 
 export class Basket extends Component<IBasketView> {
@@ -18,15 +24,6 @@ export class Basket extends Component<IBasketView> {
 
         this._list = ensureElement<HTMLElement>('.basket__list', this.container);
         this._total = this.container.querySelector('.basket__price');
-        this._button = this.container.querySelector('.button');
-
-        if (this._button) {
-            this._button.addEventListener('click', () => {
-                events.emit('basket:open');
-            });
-        }
-
-        this.items = [];
     }
 
     set items(items: HTMLElement[]) {
