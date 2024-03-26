@@ -10,7 +10,6 @@ export interface IProductItem {
   title: string,
   category: string,
   price: number | null,
-  selected: boolean;
 } 
 
 export type PaymentMethod = 'card' | 'cash';
@@ -21,7 +20,7 @@ export interface IOrder {
   phone: string,
   address: string,
   total: number | null,
-  items: string[]
+  items: IProductItem[]
 }
 
 export interface IOrderResult {

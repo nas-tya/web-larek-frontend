@@ -2,6 +2,8 @@ import {Model} from "./base/model";
 import {IProductItem, IOrder, IAppState, FormErrors, PaymentMethod } from "../types";
 import { IEvents } from "./base/events";
 
+import {IOrderContacts, IOrderAddress} from "././order"
+
 export type CatalogChangeEvent = {
     catalog: IProductItem[]
 };
@@ -13,12 +15,11 @@ export class Product extends Model<IProductItem> {
   title: string;
   category: string;
   price: number | null;
-  selected: boolean;
 }
 
 export class AppState extends Model<IAppState> {
   catalog: IProductItem[];
-  basket: HTMLElement[];    
+  basket: IProductItem[] = [];    
   preview: string | null;
   order: null | IOrder = {
     payment: 'card',
@@ -30,10 +31,17 @@ export class AppState extends Model<IAppState> {
 };
   formErrors: FormErrors = {};
 
-  addToBasket(item: HTMLElement): void {
-    this.basket.push(item);
-    this.emitChanges('basket:changed');
+  addToBasket(itemId: IProductItem): void {
+    if (!this.basket.includes(itemId)) {
+        this.basket.push(itemId);
+    }
 }
+  deleteFromBasket(itemId: IProductItem): void {
+    const index = this.basket.indexOf(itemId); 
+    if (index !== -1) {
+        this.basket.splice(index, 1); 
+    }
+  }
 
   clearBasket(): void {
     this.basket = [];
@@ -53,11 +61,8 @@ export class AppState extends Model<IAppState> {
   }
 
   getTotal(): number | null {
-    return this.order.items.reduce((total, itemId) => {
-        const product = this.catalog.find(item => item.id === itemId);
-        return total + (product ? product.price : 0);
-    }, 0);
-}
+    return this.basket.reduce((a, c) => a + c.price, 0);
+  }
 
   setCatalog(items: IProductItem[]): void {
     this.catalog = items.map(item => new Product(item, this.events));
@@ -69,13 +74,18 @@ export class AppState extends Model<IAppState> {
     this.emitChanges('preview:changed', item);
   }
 
-  getTheBasket(): HTMLElement[] {
+  getTheBasket(): IProductItem[] {
     return this.basket || [];
 }
 
-checkIfInTheBasket(item: HTMLElement): boolean {
-  return this.basket.includes(item);
-}
+  checkIfInTheBasket(itemId: IProductItem): boolean {
+    return this.basket.includes(itemId);
+  }
+
+  setOrder(): void {
+    this.order.total = this.getTotal();
+    this.order.items = this.getTheBasket()
+  }
 
   setPayment(payment: PaymentMethod): void {
     this.order.payment = payment;
@@ -93,7 +103,7 @@ checkIfInTheBasket(item: HTMLElement): boolean {
     this.order.email = email;
   }
 
-  validateOrderContacts(): void {
+  validateOrderContacts(): boolean {
       const errors: typeof this.formErrors = {};
       if (!this.order.email) {
           errors.email = 'Необходимо указать email';
@@ -103,14 +113,16 @@ checkIfInTheBasket(item: HTMLElement): boolean {
       }
       this.formErrors = errors;
       this.events.emit('contactsErrors:change', this.formErrors);
+      return Object.keys(errors).length === 0;
   }
 
-  validateOrderAddress(): void {
+  validateOrderAddress(): boolean {
     const errors: typeof this.formErrors = {};
     if (!this.order.address) {
         errors.email = 'Необходимо указать адрес';
     }
     this.formErrors = errors;
     this.events.emit('addressErrors:change', this.formErrors);
+    return Object.keys(errors).length === 0;
 }
 }

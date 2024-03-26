@@ -3,7 +3,7 @@ import {IOrder, PaymentMethod} from "../types";
 import {EventEmitter, IEvents} from "./base/events";
 import {ensureElement} from "../utils/utils";
 
-interface IOrderContacts {
+export interface IOrderContacts {
   phone: string;
   email: string;
 }
@@ -23,7 +23,7 @@ export class OrderContacts extends Form<IOrderContacts> {
     }
 }
 
-interface IOrderAddress {
+export interface IOrderAddress {
   address: string;
   payment: PaymentMethod;
 }

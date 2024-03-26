@@ -49,7 +49,12 @@ export class Card<T> extends Component<ICard<T>> {
           }
       }
     }
-    
+
+    set buttonLabel(label: string) {
+      this._button.textContent = label;
+      console.log(this._button);
+    }
+
     set id(value: string) {
       this.container.dataset.id = value;
     }
@@ -79,6 +84,7 @@ export class Card<T> extends Component<ICard<T>> {
           this.setText(this._price, 'Бесценно');
           if (this._button) { 
               this._button.setAttribute('disabled', '');
+              this.setText(this._button, 'Нельзя купить');
           } 
       } else {
           this.setText(this._price, value + ' синапсов');
@@ -102,30 +108,44 @@ export class Card<T> extends Component<ICard<T>> {
   }
 }
 
-export interface ICardBusket {
+export interface IBasketItem {
   title: string;
   price: number | null;
+  id: number;
 }
 
-export class CardInBasket extends Card<ICardBusket> {
-  protected _index?: HTMLElement;
+export class CardInBasket extends Component<IBasketItem> {
+  protected _title: HTMLElement;
+  protected _price: HTMLElement;
+  protected _id: HTMLElement;
+  protected _deleteButton: HTMLElement;
 
-	constructor(container: HTMLElement, actions?: ICardActions) {
-		super('card', container, actions);
-		this._index = ensureElement<HTMLElement>(`.basket__item-index`, container);
-	}
+  constructor(container: HTMLElement, actions?: ICardActions) {
+      super(container);
 
-	set index(value: number) {
-		this._index.textContent = value.toString();
-	}
+      this._title = ensureElement<HTMLElement>('.card__title', container);
+      this._price = ensureElement<HTMLElement>('.card__price', container);
+      this._id = ensureElement<HTMLElement>('.basket__item-index', container);
+      this._deleteButton = ensureElement<HTMLElement>('.basket__item-delete', container);
+
+      if (actions && actions.onClick) {
+          this._deleteButton.addEventListener('click', actions.onClick);
+      }
+  }
+
+  set title(value: string) {
+      this.setText(this._title, value);
+  }
+
+  set price(value: number) {
+      this.setText(this._price, `${value} синапсов`);
+  }
+
+  set id(value: string) {
+    this.setText(this._id, value);
 }
 
-interface IPreviewCard {
-	label: string;
-};
-
-export class PreviewCard extends Card<IPreviewCard> {
-	constructor(container: HTMLElement, actions?: ICardActions) {
-		super('card', container, actions);
-	}
+  get id(): string {
+    return this._id.textContent || '';
+  }
 }
