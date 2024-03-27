@@ -12,15 +12,20 @@ export interface IProductItem {
   price: number | null,
 } 
 
-export type PaymentMethod = 'card' | 'cash';
-
 export interface IOrder {
-  payment: PaymentMethod,
+  payment: string,
   email: string,
   phone: string,
   address: string,
   total: number | null,
   items: IProductItem[]
+}
+
+export interface IOrderForm {
+  payment: string,
+  email: string,
+  phone: string,
+  address: string
 }
 
 export interface IOrderResult {

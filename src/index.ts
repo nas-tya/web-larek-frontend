@@ -11,7 +11,7 @@ import { Basket } from "./components/common/basket";
 import { OrderContacts, OrderAddress, IOrderContacts, IOrderAddress } from "./components/order";
 import { Success } from "./components/common/success";
 import { LarekAPI } from "./components/larekApi";
-import { IOrder, IProductItem, PaymentMethod } from './types';
+import { IOrder, IProductItem, IOrderForm } from './types';
 
 const events = new EventEmitter();
 const api = new LarekAPI(CDN_URL, API_URL);
@@ -179,13 +179,81 @@ events.on('preview:changed', (item: Product) => {
 events.on('order:open', () => {
     modal.render({
         content: orderAddress.render({
-            address: '',
             payment: 'card',
+            address: '',
             valid: false,
             errors: []
         })
     });
 });
+
+events.on('order:submit', () => {
+    modal.render({
+        content: orderContacts.render({
+            email: '',
+            phone: '',
+            valid: false,
+            errors: []
+        })
+    });
+})
+
+// Изменилось состояние валидации формы с адресом
+events.on('formErrorsAddress:change', (errors: Partial<IOrderForm>) => {
+    const { payment, address } = errors;
+    orderAddress.valid = !payment && !address;
+    orderAddress.errors = Object.values({payment, address}).filter(i => !!i).join('; ');
+});
+
+// Изменилось состояние валидации формы с контактами
+events.on('formErrorsContacts:change', (errors: Partial<IOrderForm>) => {
+    const { email, phone } = errors;
+    orderContacts.valid = !email && !phone;
+    orderContacts.errors = Object.values({email, phone}).filter(i => !!i).join('; ');
+});
+
+// Изменилось одно из полей
+events.on('orderInput:change', (data: { field: keyof IOrderForm, value: string }) => {
+    appData.setOrderField(data.field, data.value);
+});
+
+events.on('order.payment:change', (data: { value: string }) => {
+    appData.setPayment(data.value);
+})
+
+events.on('order.address:change', (data: { value: string }) => {
+    appData.setAddress(data.value);
+})
+
+events.on('contacts.email:change', (data: { value: string }) => {
+    appData.setEmail(data.value);
+})
+
+events.on('contacts.phone:change', (data: { value: string }) => {
+    appData.setPhone(data.value);
+})
+
+// Отправлен заказ
+events.on('contacts:submit', () => {
+    api.orderProducts(appData.order)
+        .then((result) => {
+            const success = new Success(cloneTemplate(successTemplate), {
+                onClick: () => {
+                    modal.close();
+                    appData.clearBasket();
+                }
+            }, appData.getTotal());
+            
+            modal.render({
+                content: success.render({
+                    total: appData.getTotal()
+                })
+            });
+        })
+        .catch(err => {
+            console.error(err);
+        });
+})
 
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {

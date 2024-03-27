@@ -1,8 +1,8 @@
 import {Model} from "./base/model";
-import {IProductItem, IOrder, IAppState, FormErrors, PaymentMethod } from "../types";
+import {IProductItem, IOrder, IAppState, FormErrors, IOrderForm } from "../types";
 import { IEvents } from "./base/events";
 
-import {IOrderContacts, IOrderAddress} from "././order"
+import {IOrderContacts, IOrderAddress, OrderAddress} from "././order"
 
 export type CatalogChangeEvent = {
     catalog: IProductItem[]
@@ -87,20 +87,50 @@ export class AppState extends Model<IAppState> {
     this.order.items = this.getTheBasket()
   }
 
-  setPayment(payment: PaymentMethod): void {
+  setPayment(payment: string): void {
     this.order.payment = payment;
+    this.validateOrderAddress();
   }
 
   setAddress(address: string): void {
     this.order.address = address;
+    this.validateOrderAddress();
   }
 
   setPhone(phone: string): void {
     this.order.phone = phone;
+    this.validateOrderContacts();
   }
 
   setEmail(email: string): void {
     this.order.email = email;
+    this.validateOrderContacts();
+  }
+
+  setOrderField(field: keyof IOrderForm, value: string) {
+    this.order[field] = value;
+
+    if (this.validateOrderAddress()) {
+        this.events.emit('order:open', this.order);
+    }
+
+    if (this.validateOrderContacts()) {
+      this.events.emit('contacts:open', this.order);
+  }
+}
+
+  validateOrderAddress(): boolean {
+    const errors: typeof this.formErrors = {};
+    if (!this.order.payment) {
+      errors.address = 'Необходимо указать способ оплаты';
+  }
+
+    if (!this.order.address) {
+        errors.address = 'Необходимо указать адрес';
+    }
+    this.formErrors = errors;
+    this.events.emit('formErrorsAddress:change', this.formErrors);
+    return Object.keys(errors).length === 0;
   }
 
   validateOrderContacts(): boolean {
@@ -112,17 +142,7 @@ export class AppState extends Model<IAppState> {
           errors.phone = 'Необходимо указать телефон';
       }
       this.formErrors = errors;
-      this.events.emit('contactsErrors:change', this.formErrors);
+      this.events.emit('formErrorsContacts:change', this.formErrors);
       return Object.keys(errors).length === 0;
   }
-
-  validateOrderAddress(): boolean {
-    const errors: typeof this.formErrors = {};
-    if (!this.order.address) {
-        errors.email = 'Необходимо указать адрес';
-    }
-    this.formErrors = errors;
-    this.events.emit('addressErrors:change', this.formErrors);
-    return Object.keys(errors).length === 0;
-}
 }
