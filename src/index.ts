@@ -4,14 +4,14 @@ import { API_URL, CDN_URL } from "./utils/constants";
 import { EventEmitter } from "./components/base/events";
 import { AppState, CatalogChangeEvent, Product } from "./components/appData";
 import { Page } from "./components/page";
-import { Card, CardInBasket, IBasketItem } from "./components/card";
-import { cloneTemplate, createElement, ensureElement } from "./utils/utils";
+import { Card, CardInBasket } from "./components/card";
+import { cloneTemplate, ensureElement } from "./utils/utils";
 import { Modal } from "./components/common/modal";
 import { Basket } from "./components/common/basket";
-import { OrderContacts, OrderAddress, IOrderContacts, IOrderAddress } from "./components/order";
+import { OrderContacts, OrderAddress } from "./components/order";
 import { Success } from "./components/common/success";
 import { LarekAPI } from "./components/larekApi";
-import { IOrder, IProductItem, IOrderForm } from './types';
+import { IOrderForm } from './types';
 
 const events = new EventEmitter();
 const api = new LarekAPI(CDN_URL, API_URL);
@@ -122,15 +122,6 @@ events.on('basket:changed', () => {
 
     });
 
-
-// Клик по корзине
-const openBasketButton = document.querySelector('.header__basket');
-if (openBasketButton) {
-    openBasketButton.addEventListener('click', () => {
-        events.emit('basket:changed');
-    });
-}
-
 // Изменен открытый выбранный лот
 events.on('preview:changed', (item: Product) => {
   const showItem = (item: Product) => {
@@ -175,7 +166,7 @@ events.on('preview:changed', (item: Product) => {
   }
 });
 
-// Открыть форму заказа
+// Открыть форму заказа с адресом и оплатой
 events.on('order:open', () => {
     modal.render({
         content: orderAddress.render({
@@ -187,6 +178,7 @@ events.on('order:open', () => {
     });
 });
 
+// Открыть форму заказа с контактами
 events.on('order:submit', () => {
     modal.render({
         content: orderContacts.render({
@@ -233,27 +225,35 @@ events.on('contacts.phone:change', (data: { value: string }) => {
     appData.setPhone(data.value);
 })
 
-// Отправлен заказ
+// Отправить заказ
 events.on('contacts:submit', () => {
+    appData.setOrder();
+    console.log(appData.order);
     api.orderProducts(appData.order)
-        .then((result) => {
-            const success = new Success(cloneTemplate(successTemplate), {
-                onClick: () => {
+        .then(() => {
                     modal.close();
-                    appData.clearBasket();
-                }
-            }, appData.getTotal());
-            
-            modal.render({
-                content: success.render({
-                    total: appData.getTotal()
+                    appData.clearOrder();
+                    events.emit('order:success');
                 })
-            });
-        })
         .catch(err => {
             console.error(err);
         });
 })
+
+// Заказ успешно отправлен
+events.on('order:success', () => {
+    const success = new Success(cloneTemplate(successTemplate), {
+        onClick: () => {
+            modal.close();
+            appData.clearBasket();
+            changePageCounter();
+            window.location.href = '/';
+        }}, appData.getTotal());
+
+        modal.render({
+            content: success.render({})
+        });
+});
 
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {

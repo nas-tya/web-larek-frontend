@@ -1,8 +1,6 @@
 import {Model} from "./base/model";
 import {IProductItem, IOrder, IAppState, FormErrors, IOrderForm } from "../types";
-import { IEvents } from "./base/events";
 
-import {IOrderContacts, IOrderAddress, OrderAddress} from "././order"
 
 export type CatalogChangeEvent = {
     catalog: IProductItem[]
@@ -84,7 +82,7 @@ export class AppState extends Model<IAppState> {
 
   setOrder(): void {
     this.order.total = this.getTotal();
-    this.order.items = this.getTheBasket()
+    this.order.items = this.getTheBasket().map(item => item.id);
   }
 
   setPayment(payment: string): void {

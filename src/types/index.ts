@@ -18,7 +18,7 @@ export interface IOrder {
   phone: string,
   address: string,
   total: number | null,
-  items: IProductItem[]
+  items: string[]
 }
 
 export interface IOrderForm {
