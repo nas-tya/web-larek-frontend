@@ -1,8 +1,3 @@
-export interface IProductList {
-  total: number | null,
-  items: []
-} 
-
 export interface IProductItem {
   id: string,
   description: string,
