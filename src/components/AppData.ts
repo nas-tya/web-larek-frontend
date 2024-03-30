@@ -1,19 +1,10 @@
-import {Model} from "./base/model";
+import {Model} from "./base/Model";
 import {IProductItem, IOrder, IAppState, FormErrors, IOrderForm } from "../types";
 
 
 export type CatalogChangeEvent = {
     catalog: IProductItem[]
 };
-
-export class Product extends Model<IProductItem> {
-  id: string;
-  description: string;
-  image: string;
-  title: string;
-  category: string;
-  price: number | null;
-}
 
 export class AppState extends Model<IAppState> {
   catalog: IProductItem[];
@@ -29,13 +20,14 @@ export class AppState extends Model<IAppState> {
 };
   formErrors: FormErrors = {};
 
-  addToBasket(itemId: IProductItem): void {
-    if (!this.basket.includes(itemId)) {
-        this.basket.push(itemId);
-    }
-}
-  deleteFromBasket(itemId: IProductItem): void {
-    const index = this.basket.indexOf(itemId); 
+  addToBasket(item: IProductItem): void {
+    if (!this.basket.includes(item)) {
+        this.basket.push(item);
+    } 
+  }
+
+  deleteFromBasket(item: IProductItem): void {
+    const index = this.basket.indexOf(item); 
     if (index !== -1) {
         this.basket.splice(index, 1); 
     }
@@ -44,7 +36,6 @@ export class AppState extends Model<IAppState> {
   clearBasket(): void {
     this.basket = [];
     this.clearOrder();
-    this.emitChanges('basket:changed');
   }
 
   clearOrder(): void {
@@ -63,7 +54,8 @@ export class AppState extends Model<IAppState> {
   }
 
   setCatalog(items: IProductItem[]): void {
-    this.catalog = items.map(item => new Product(item, this.events));
+    // this.catalog = items.map(item => new Product(item, this.events));
+    this.catalog = items;
     this.events.emit('items:changed');
   }
 

@@ -1,5 +1,5 @@
-import { Form } from "./common/form";
-import {IEvents} from "./base/events";
+import { Form } from "./common/Form";
+import {IEvents} from "./base/Events";
 
 export interface IOrderContacts {
   phone: string;

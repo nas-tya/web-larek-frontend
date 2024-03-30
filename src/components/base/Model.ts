@@ -1,4 +1,4 @@
-import {IEvents} from "./events";
+import {IEvents} from "./Events";
 
 // проверка на модель
 export const isModel = (obj: unknown): obj is Model<any> => {

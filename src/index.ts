@@ -1,17 +1,17 @@
 import './scss/styles.scss';
 
 import { API_URL, CDN_URL } from "./utils/constants";
-import { EventEmitter } from "./components/base/events";
-import { AppState, CatalogChangeEvent, Product } from "./components/appData";
-import { Page } from "./components/page";
-import { Card, CardInBasket } from "./components/card";
+import { EventEmitter } from "./components/base/Events";
+import { AppState, CatalogChangeEvent } from "./components/AppData";
+import { Page } from "./components/Page";
+import { Card } from "./components/Card";
 import { cloneTemplate, ensureElement } from "./utils/utils";
-import { Modal } from "./components/common/modal";
-import { Basket } from "./components/common/basket";
-import { OrderContacts, OrderAddress } from "./components/order";
-import { Success } from "./components/common/success";
-import { LarekAPI } from "./components/larekApi";
-import { IOrderForm } from './types';
+import { Modal } from "./components/common/Modal";
+import { Basket } from "./components/Basket";
+import { OrderContacts, OrderAddress } from "./components/Order";
+import { Success } from "./components/Success";
+import { LarekAPI } from "./components/LarekApi";
+import { IOrderForm, IProductItem } from './types';
 
 const events = new EventEmitter();
 const api = new LarekAPI(CDN_URL, API_URL);
@@ -59,7 +59,7 @@ events.on<CatalogChangeEvent>('items:changed', () => {
 });
 
 // Открыть лот
-events.on('card:select', (item: Product) => {
+events.on('card:select', (item: IProductItem) => {
     console.log('карточка открыта');
     appData.setPreview(item);
 });
@@ -76,7 +76,7 @@ const changePageCounter = () => {
 }
 
 // Добавление в корзину
-events.on('basket:added', (item: Product) => {
+events.on('basket:added', (item: IProductItem) => {
     console.log('Item added to basket:', item);
     appData.addToBasket(item);
     changePageCounter();
@@ -84,7 +84,7 @@ events.on('basket:added', (item: Product) => {
 })
 
 // Удаление из корзины
-events.on('basket:deleted', (item: Product) => {
+events.on('basket:deleted', (item: IProductItem) => {
     console.log('Item deleted from basket:', item);
     appData.deleteFromBasket(item);
     events.emit('basket:changed');
@@ -99,7 +99,7 @@ events.on('basket:changed', () => {
     console.log(total);
 
     const cardsInBasket = basketItems.map((item, i) => {
-        const cardBasket = new CardInBasket(cloneTemplate(cardBasketTemplate), {
+        const cardBasket = new Card('card', cloneTemplate(cardBasketTemplate), {
             onClick: () => {
                 events.emit('basket:deleted', item);
                 console.log('card deleted');
@@ -107,7 +107,7 @@ events.on('basket:changed', () => {
         });
 
         return cardBasket.render({
-            id: i + 1,
+            id: String(i + 1),
             title: item.title,
             price: item.price,
         });
@@ -123,8 +123,8 @@ events.on('basket:changed', () => {
     });
 
 // Изменен открытый выбранный лот
-events.on('preview:changed', (item: Product) => {
-  const showItem = (item: Product) => {
+events.on('preview:changed', (item: IProductItem) => {
+  const showItem = (item: IProductItem) => {
       const card = new Card('card', cloneTemplate(cardPreviewTemplate), {
         onClick: () => {
             if (appData.checkIfInTheBasket(item)) {
@@ -152,18 +152,7 @@ events.on('preview:changed', (item: Product) => {
           });
       };
 
-  if (item) {
-      api.getProductItem(item.id)
-          .then((result) => {
-              item.description = result.description;
-              showItem(item);
-          })
-          .catch((err) => {
-              console.error(err);
-          })
-  } else {
-      modal.close();
-  }
+        showItem(item);
 });
 
 // Открыть форму заказа с адресом и оплатой
@@ -232,24 +221,24 @@ events.on('contacts:submit', () => {
     api.orderProducts(appData.order)
         .then(() => {
                     modal.close();
-                    appData.clearOrder();
                     events.emit('order:success');
+                    appData.clearBasket();
+                    appData.clearOrder();     
+                    changePageCounter();             
                 })
         .catch(err => {
             console.error(err);
-        });
+        }); 
 })
 
 // Заказ успешно отправлен
 events.on('order:success', () => {
+    console.log('вызвали саксесс');
     const success = new Success(cloneTemplate(successTemplate), {
         onClick: () => {
             modal.close();
-            appData.clearBasket();
-            changePageCounter();
             window.location.href = '/';
         }}, appData.getTotal());
-
         modal.render({
             content: success.render({})
         });

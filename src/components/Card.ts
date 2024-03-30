@@ -1,4 +1,4 @@
-import { Component } from "./base/component";
+import { Component } from "./base/Component";
 import { IProductItem } from "../types";
 import { ensureElement } from "../utils/utils";
 
@@ -6,7 +6,7 @@ interface ICardActions {
     onClick: (event: MouseEvent) => void;
 }
 
-export type ICard<T> = IProductItem & { 
+export type ICard = IProductItem & { 
   title?: string;
   image?: string;
   button?: string;
@@ -22,7 +22,7 @@ const category: Record<string, string> = {
   'кнопка': '_button' 
 }
 
-export class Card<T> extends Component<ICard<T>> {
+export class Card extends Component<ICard> {
     protected _title: HTMLElement;
     protected _image?: HTMLImageElement;
     protected _description?: HTMLElement;
@@ -34,11 +34,32 @@ export class Card<T> extends Component<ICard<T>> {
         super(container);
 
         this._title = ensureElement<HTMLElement>(`.${blockName}__title`, container);
-        this._image = ensureElement<HTMLImageElement>(`.${blockName}__image`, container);
         this._button = container.querySelector(`.${blockName}__button`);
-        this._description = container.querySelector(`.${blockName}__text`);
         this._price = ensureElement<HTMLElement>(`.${blockName}__price`, container);
-        this._category = ensureElement<HTMLElement>(`.${blockName}__category`, container);
+
+        // Проверяем наличие изображения
+        const imageElement = container.querySelector(`.${blockName}__image`);
+        if (imageElement instanceof HTMLImageElement) {
+            this._image = imageElement;
+        } else {
+            this._image = null;
+        }
+
+         // Проверяем наличие описания
+        const descriptionElement = container.querySelector(`.${blockName}__text`);
+        if (descriptionElement instanceof HTMLElement) {
+            this._description = descriptionElement;
+        } else {
+            this._description = null; 
+        }
+
+        // Проверяем наличие категории
+        const categoryElement = container.querySelector(`.${blockName}__category`);
+        if (categoryElement instanceof HTMLElement) {
+            this._category = categoryElement;
+        } else {
+            this._category = null; 
+        }
 
         // если есть кнопка - ловим клик по кнопке, если кнопки нет - ловим по карточке 
         if (actions?.onClick) {
@@ -72,7 +93,7 @@ export class Card<T> extends Component<ICard<T>> {
     }
 
     set image(value: string) {
-      this.setImage(this._image, value, this.title)
+        this.setImage(this._image, value, this.title);
     }
 
     set description(value: string | string[]) {
@@ -105,47 +126,5 @@ export class Card<T> extends Component<ICard<T>> {
 
     get category(): string {
       return this._category.textContent || '';
-  }
-}
-
-export interface IBasketItem {
-  title: string;
-  price: number | null;
-  id: number;
-}
-
-export class CardInBasket extends Component<IBasketItem> {
-  protected _title: HTMLElement;
-  protected _price: HTMLElement;
-  protected _id: HTMLElement;
-  protected _deleteButton: HTMLElement;
-
-  constructor(container: HTMLElement, actions?: ICardActions) {
-      super(container);
-
-      this._title = ensureElement<HTMLElement>('.card__title', container);
-      this._price = ensureElement<HTMLElement>('.card__price', container);
-      this._id = ensureElement<HTMLElement>('.basket__item-index', container);
-      this._deleteButton = ensureElement<HTMLElement>('.basket__item-delete', container);
-
-      if (actions && actions.onClick) {
-          this._deleteButton.addEventListener('click', actions.onClick);
-      }
-  }
-
-  set title(value: string) {
-      this.setText(this._title, value);
-  }
-
-  set price(value: number) {
-      this.setText(this._price, `${value} синапсов`);
-  }
-
-  set id(value: string) {
-    this.setText(this._id, value);
-}
-
-  get id(): string {
-    return this._id.textContent || '';
   }
 }
